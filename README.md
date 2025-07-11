@@ -12,15 +12,12 @@ The primary goal of this tool is to facilitate the elicitation of expert knowled
 - Specify different values for degradation and regeneration pathways.
 - Set probabilities independently for near-term (25 years) and long-term (100 years) projections.
 
-The data entered can be downloaded or submitted, enabling structured capture of expert input for future analysis or model calibration.
-
 ## **Features**
 
-- Fully interactive network diagram of vegetation states.
-- Dynamic edge selection and highlighting.
-- Custom driver selection grouped by ecological themes (e.g., climate, fire, grazing, weeds).
+- Interactive network diagram of vegetation states.
+- Driver selection grouped by ecological themes (e.g., climate, fire, grazing, weeds).
 - Scenario and time-period toggles.
-- CSV download and export of all expert responses including probabilities and selected drivers.
+- CSV download of responses including probabilities and selected drivers.
 
 ## **Structure**
 
@@ -36,11 +33,11 @@ Launch the [STM shiny app](https://rco-anderson.shinyapps.io/stm_app/).
 
 1. Select a scenario (Degradation or Regeneration).
 2. Choose a time horizon (25 or 100 years).
-3. Click on any transition arrow to:
+3. Click on any transition arrow to.
 4. Enter a transition probability.
     - Select ecological drivers.
     - Repeat for all transitions.
-5. Click Submit All Probabilities or download the data for further processing.
+5. Click Submit All Probabilities and download the data.
 
 ## **Notes**
 
