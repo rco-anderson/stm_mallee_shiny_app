@@ -1,6 +1,6 @@
 # **Mallee Ecosystems State-and-Transition Model (STM) App**
 
-This interactive Shiny application implements a State-and-Transition Model (STM) designed specifically for the Mallee ecosystems in Australia. The STM framework allows users to explore and define vegetation state transitions under different scenarios of degradation and regeneration, across two future time horizons: 25 years and 100 years.
+This interactive [STM shiny app](https://rco-anderson.shinyapps.io/stm_app/) implements a State-and-Transition Model (STM) designed specifically for the Mallee ecosystems in Australia. The STM framework allows users to explore and define vegetation state transitions under different scenarios of degradation and regeneration, across two future time horizons: 25 years and 100 years.
 
 ## **Purpose**
 
@@ -32,7 +32,7 @@ The app is composed of:
 
 ## **Usage**
 
-Launch the Shiny app.
+Launch the [STM shiny app](https://rco-anderson.shinyapps.io/stm_app/).
 
 1. Select a scenario (Degradation or Regeneration).
 2. Choose a time horizon (25 or 100 years).
