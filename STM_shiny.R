@@ -1,182 +1,7 @@
 library(shiny)
 library(visNetwork)
 library(dplyr)
-
-# ---- Drivers dataframe ----
-drivers_df <- data.frame(
-  Broad.theme = c(
-    rep("Clearing", 6),
-    rep("Climate", 12),
-    rep("Cultural management", 2),
-    rep("Fire", 7),
-    rep("Grazing management", 8),
-    rep("Hydrology", 9),
-    rep("Native fauna", 6),
-    rep("Pests and diseases", 8),
-    rep("Production", 11),
-    rep("Restoration", 25),
-    rep("Soil", 9),
-    rep("Vegetation", 30),
-    rep("Weeds", 7)
-  ),
-  Driver.pre.condition = c(
-    # Clearing
-    "Clearing (vegetation removal) - all strata",
-    "Clearing (vegetation removal) - midstorey, shrubs or saplings",
-    "Clearing (vegetation removal) - overstorey species (including saplings)",
-    "Clearing (vegetation removal) - woody vegetation",
-    "Selective thinning of the overstorey - large trees (e.g., removal of large, hollow bearing trees)",
-    "Selective thinning of the overstorey - saplings (e.g., removal of saplings or non-hollow bearing trees)",
-    # Climate
-    "Average climatic conditions",
-    "Climate - extreme weather - cyclone/storms",
-    "Climate - extreme weather - flooding",
-    "Climate - extreme weather - high/damaging winds",
-    "Climate - hail damage",
-    "Climate - temperature extremes (frost or extreme cold)",
-    "Climate - temperature extremes (heatwave or extreme heat)",
-    "Climate - unfavourable climatic conditions (drought)",
-    "Climate change - increases or decreases in temperature and/or precipitation",
-    "Climate-change induced changes to phenology including pollinators and flowering and reproductive output",
-    "Favourable climatic conditions (mild summer, regular rainfall)",
-    "Sea level rise due to climate change",
-    # Cultural management
-    "Lack or loss of cultural management, cultural severance to country",
-    "Reinstating cultural management, custodianship and self-determination, including cultural use of plants and animals, and cultural fire",
-    # Fire
-    "Change in fire seasonality (non-reference fire seasonality) linked to changes in management and/or climate",
-    "High intensity fire (catastrophic wildfire, bushfire) and/or increase in fire intensity",
-    "Increase in fire frequency",
-    "Low intensity fire and/or decrease in fire intensity",
-    "Maintain reference fire regime",
-    "Reduction in fire frequency",
-    "Reinstate reference fire regime",
-    # Grazing management
-    "Exclude livestock (e.g., through fencing)",
-    "Livestock grazing (set-stock, continuous, rotational)",
-    "Maintain appropriate grazing pressure (native herbivores only)",
-    "Manage and maintain appropriate total grazing pressure (includes native and introduced herbivores)",
-    "Protection from browsing fauna (native or introduced)",
-    "Reduce total grazing pressure (includes native and introduced herbivores)",
-    "Sporadic high intensity livestock grazing (for biomass removal)",
-    "Unregulated total grazing pressure (native and introduced herbivores)",
-    # Hydrology
-    "Altered groundwater table - lowered",
-    "Altered groundwater table - raised",
-    "Decrease in the natural movement, quantity, timing, or distribution of water within an ecosystem e.g. floodplain harvesting or water extraction, landscape dehydration",
-    "Drainage of water and aquatic habitat (e.g., lakes, rivers, streams, swamps)",
-    "Ground water contamination",
-    "Increase in the natural movement, quantity, timing, or distribution of water within an ecosystem e.g. environmental flows in rivers, damming waterways",
-    "Irrigation - temporary or permanent overflow or input of water onto normally dry land via sprinklers or flooding",
-    "Landscape rehydration interventions including water ponding (bunding of waters to retain water)",
-    "Salinisation of groundwater (saline groundwater)",
-    # Native fauna
-    "Native fauna - habitat maintenance - retention and protection of ground layer habitat and fauna refugia (logs, rocks)",
-    "Native fauna - habitat degradation - removal of ground layer habitat and fauna refugia (e.g., logs, rocks)",
-    "Native fauna - habitat restoration - addition of arboreal habitat (e.g., nest boxes, artificial hollows)",
-    "Native fauna - habitat restoration - addition of ground layer habitat and fauna refugia (e.g., logs, rocks)",
-    "Overabundance of native fauna",
-    "Reintroduction of native fauna, including predators (e.g., via translocation)",
-    # Pests and diseases
-    "Control of feral herbivores and/or predators leading to a reduction in their abundance and related impacts",
-    "Herbivory and/or browsing by vertebrate pests (e.g., goats, deer, horses, donkeys, camels, rabbits, buffalo, other hard-hooved ungulates)",
-    "Herbivory by defoliating insects leading to tree stress or mortality",
-    "Inadequate of monitoring or control of fauna (feral predators, pest animals, overabundant native herbivores)",
-    "Manage pest or disease outbreaks e.g. through the application of pesticides, sanitation processes or introduction of biocontrol agents",
-    "Mortality due to fungal diseases (e.g., Phytophthora, Myrtle rust)",
-    "Overabundance of feral animals due to lack or no active management or control",
-    "Viruses, bacteria or parasites impacting native fauna abundance",
-    # Production
-    "Cessation of cropping and cultivation",
-    "Cessation of fertiliser addition",
-    "Cessation of horticulture (cultivation of exotic plants species)",
-    "Cessation of land-use (land abandonment)",
-    "Cessation of selective logging",
-    "Cropping - conversion from mixed-pastures and/or native pastures to monoculture",
-    "Cropping and cultivation (including fertiliser addition, tilling) or sowing of pasture species",
-    "Cultivation - planting of native tree plantations (e.g., native forestry), sandalwood plantations",
-    "Horticulture - cultivation of exotic woody plant species (e.g., orchards, olive groves, non-native forestry)",
-    "Logging (e.g., harvesting, forestry, firewood collection, biomass removal, clearfell, selective, salvage)",
-    "Cease land-use (abandonment) and remove barriers to plant growth (e.g. pavement, buildings)",
-    # Restoration
-    "Direct native seeding of locally endemic species indigenous to historical climate and/or climate adapted species",
-    "Fencing to exclude pest herbivores and predators",
-    "Mowing or slashing of the herbaceous layer with the removal of biomass",
-    "Mowing or slashing of the herbaceous layer: no removal of biomass",
-    "Mulching",
-    "Passive restoration and natural vegetation regrowth",
-    "Planting seedlings",
-    "Protect soil and ground layer from disturbance",
-    "Restoration of soil nutrient balance (e.g., scalping, addition of sugar, sand, or other method)",
-    "Restoration of soil structure and hydrological function (e.g., reduce erosion, increase resource retention and infiltration)",
-    "Revegetation of all strata with reference species",
-    "Revegetation of exotic (non-native) vegetation, e.g. lawns, gardens",
-    "Revegetation of ground layer species",
-    "Revegetation of halophytes (salt tolerant species)",
-    "Revegetation of midstorey species",
-    "Revegetation of overstorey species",
-    "Ripping for direct seeding",
-    "Scalping to remove weed seeds",
-    "Sow cover crops",
-    "Supplementary planting and addition of seed for ground layer species",
-    "Supplementary planting of any species that haven't previously established",
-    "Supplementary planting of late successional species",
-    "Supplementary planting of midstorey species",
-    "Supplementary planting of overstorey species",
-    "Tube stock survival and growth",
-    # Soil
-    "Change in soil nutrient cycling (e.g. nitrogen release)",
-    "Nutrification of soil (e.g., from stock camps, fertiliser addition)",
-    "Reference soil nutrient levels",
-    "Saline scalding",
-    "Soil disturbance and degradation of structure (e.g., mechanical, trampling, ripping, excavation)",
-    "Soil remediation e.g. addition of ameliorants including mycorrhizae, lime, gypsum",
-    "Soil stabilisation techniques",
-    "Top soil loss due to wind erosion",
-    "Top soil overburden or removal (e.g. mining, top soil stripping for restoration)",
-    # Vegetation (abbreviated)
-    "Disruption of plant recruitment due to lack of native seed germination",
-    "Exotic species propagules in landscape",
-    "Growth and development of mature overstorey structure",
-    "Identify cause of canopy collapse",
-    "Inadequate or slow self-thinning of woody species",
-    "Inappropriate removal of native seeds via seed collection",
-    "Increased edge effects (light, exotic propagules)",
-    "Lack of available native propagules",
-    "Lack of recruitment of reference shrub species",
-    "Lack of recruitment of reference tree species",
-    "Native propagules available",
-    "Reduction in edge effects",
-    "Reduction in weed propagules",
-    "Seed germination and establishment",
-    "Shrub mortality",
-    "Transformer weed propagules in landscape",
-    "Vegetation fragmentation",
-    "Vegetation establishment - dense non-reference shrubs",
-    "Vegetation establishment - reference midstorey structure",
-    "Vegetation establishment - tree seedlings into saplings",
-    "Vegetation establishment - reference species - all strata",
-    "Vegetation establishment of exotic non-transformer species",
-    "Vegetation establishment of exotic transformer species",
-    "Vegetation establishment of grazing sensitive species",
-    "Vegetation establishment of overstorey species",
-    "Vegetation establishment of reference understorey species",
-    "Vegetation maturation - saplings to mature overstorey",
-    "Vegetation mortality - canopy loss",
-    "Vegetation mortality - mature overstorey death",
-    "Vegetation mortality - tree/shrub tube stock death",
-    # Weeds
-    "Establishment of non-woody exotic plant species",
-    "Generic weed management",
-    "Low impact chemical weed control",
-    "Strategic livestock grazing to manage weeds",
-    "Weed monitoring, surveillance and control",
-    "Woody weed removal (including vines)",
-    "Weed management using fire"
-  ),
-  stringsAsFactors = FALSE
-)
-
+library(stringr)
 
 # ---- STM NODES ----
 nodes <- data.frame(
@@ -274,9 +99,9 @@ edges_degradation <- data.frame(
     "Sparse/absent overstorey with highly modified understorey",
     "Sparse/absent overstorey with collapsed/transformer understorey",
     "Collapsed/novel overstorey with highly modified understorey",
-    "Reference overstorey with highly modified understorey",
-    "Modified overstorey with reference understorey",
-    "Reference overstorey with collapsed/transformer understorey"
+    #"Reference overstorey with highly modified understorey",
+    "Modified overstorey with reference understorey"
+    #"Reference overstorey with collapsed/transformer understorey"
   ),
   to = c(
     "Modified overstorey with reference understorey",
@@ -301,11 +126,11 @@ edges_degradation <- data.frame(
     "Collapsed/novel overstorey with highly modified understorey",
     "Collapsed/novel overstorey and understorey",
     "Collapsed/novel overstorey and understorey",
-    "Reference overstorey with collapsed/transformer understorey",
-    "Sparse/absent overstorey with modified understorey",
-    "Modified overstorey with collapsed/transformer understorey"
+    #"Reference overstorey with collapsed/transformer understorey",
+    "Sparse/absent overstorey with modified understorey"
+    #"Modified overstorey with collapsed/transformer understorey"
   ),
-  id = paste0("deg_", 1:25),
+  id = paste0("deg_", 1:23),
   label = "",
   arrows = "to",
   color = "#000000", # base color: black
@@ -349,7 +174,7 @@ edges_regeneration <- data.frame(
     "Modified overstorey with modified understorey",
     "Reference overstorey with highly modified understorey",
     "Reference overstorey with highly modified understorey",
-    "Reference overstorey with modified overstorey",
+    "Reference overstorey with modified understorey",
     "Reference overstorey with modified understorey",
     "Modified overstorey with reference understorey",
     "Reference",
@@ -365,6 +190,188 @@ edges_regeneration <- data.frame(
   stringsAsFactors = FALSE
 )
 
+# ---- Transition Drivers ----
+transitions_drivers <- data.frame(
+  from = c(
+    "Reference",
+    "Reference",
+    "Reference",
+    "Reference",
+    "Reference",
+    "Modified overstorey with reference understorey",
+    "Modified overstorey with reference understorey",
+    "Reference overstorey with modified understorey",
+    "Reference overstorey with modified understorey",
+    "Reference overstorey with highly modified understorey",
+    "Reference overstorey with highly modified understorey",
+    "Reference overstorey with collapsed/transformer understorey",
+    "Modified overstorey with modified understorey",
+    "Modified overstorey with modified understorey",
+    "Modified overstorey with highly modified understorey",
+    "Modified overstorey with highly modified understorey",
+    "Modified overstorey with collapsed/transformer understorey",
+    "Sparse/absent overstorey with modified understorey",
+    "Sparse/absent overstorey with highly modified understorey",
+    "Sparse/absent overstorey with highly modified understorey",
+    "Sparse/absent overstorey with collapsed/transformer understorey",
+    "Collapsed/novel overstorey with highly modified understorey",
+    "Modified overstorey with reference understorey",
+    "Collapsed/novel overstorey and understorey",
+    "Sparse/absent overstorey with collapsed/transformer understorey",
+    "Sparse/absent overstorey with collapsed/transformer understorey",
+    "Collapsed/novel overstorey with highly modified understorey",
+    "Sparse/absent overstorey with highly modified understorey",
+    "Sparse/absent overstorey with highly modified understorey",
+    "Sparse/absent overstorey with modified understorey",
+    "Modified overstorey with collapsed/transformer understorey",
+    "Modified overstorey with collapsed/transformer understorey",
+    "Modified overstorey with highly modified understorey",
+    "Modified overstorey with highly modified understorey",
+    "Reference overstorey with collapsed/transformer understorey",
+    "Reference overstorey with highly modified understorey",
+    "Modified overstorey with modified understorey",
+    "Modified overstorey with modified understorey",
+    "Modified overstorey with reference understorey",
+    "Reference overstorey with modified understorey"
+  ),
+  
+  to = c(
+    "Modified overstorey with reference understorey",
+    "Reference overstorey with modified understorey",
+    "Modified overstorey with modified understorey",
+    "Sparse/absent overstorey with modified understorey",
+    "Collapsed/novel overstorey and understorey",
+    "Collapsed/novel overstorey with highly modified understorey",
+    "Modified overstorey with modified understorey",
+    "Modified overstorey with modified understorey",
+    "Reference overstorey with highly modified understorey",
+    "Reference overstorey with collapsed/transformer understorey",
+    "Modified overstorey with highly modified understorey",
+    "Modified overstorey with collapsed/transformer understorey",
+    "Sparse/absent overstorey with modified understorey",
+    "Modified overstorey with highly modified understorey",
+    "Modified overstorey with collapsed/transformer understorey",
+    "Sparse/absent overstorey with highly modified understorey",
+    "Sparse/absent overstorey with collapsed/transformer understorey",
+    "Sparse/absent overstorey with highly modified understorey",
+    "Sparse/absent overstorey with collapsed/transformer understorey",
+    "Collapsed/novel overstorey with highly modified understorey",
+    "Collapsed/novel overstorey and understorey",
+    "Collapsed/novel overstorey and understorey",
+    "Sparse/absent overstorey with modified understorey",
+    "Sparse/absent overstorey with collapsed/transformer understorey",
+    "Modified overstorey with collapsed/transformer understorey",
+    "Sparse/absent overstorey with highly modified understorey",
+    "Sparse/absent overstorey with highly modified understorey",
+    "Sparse/absent overstorey with modified understorey",
+    "Modified overstorey with highly modified understorey",
+    "Modified overstorey with modified understorey",
+    "Modified overstorey with highly modified understorey",
+    "Reference overstorey with collapsed/transformer understorey",
+    "Modified overstorey with modified understorey",
+    "Reference overstorey with highly modified understorey",
+    "Reference overstorey with highly modified understorey",
+    "Reference overstorey with modified understorey",
+    "Reference overstorey with modified understorey",
+    "Modified overstorey with reference understorey",
+    "Reference",
+    "Reference"
+  ),
+  
+  scenario = c(
+    "degradation",
+    "degradation",
+    "degradation",
+    "degradation",
+    "degradation",
+    "degradation",
+    "degradation",
+    "degradation",
+    "degradation",
+    "degradation",
+    "degradation",
+    "degradation",
+    "degradation",
+    "degradation",
+    "degradation",
+    "degradation",
+    "degradation",
+    "degradation",
+    "degradation",
+    "degradation",
+    "degradation",
+    "degradation",
+    "degradation",
+    "regeneration",
+    "regeneration",
+    "regeneration",
+    "regeneration",
+    "regeneration",
+    "regeneration",
+    "regeneration",
+    "regeneration",
+    "regeneration",
+    "regeneration",
+    "regeneration",
+    "regeneration",
+    "regeneration",
+    "regeneration",
+    "regeneration",
+    "regeneration",
+    "regeneration"
+  ),
+  
+  drivers = c(
+    "Tree death by loopers; Increased fire frequency; Tree removal (pastoralism); Drought",
+    "Over-grazing; Increased fire frequency; Increased fire severity; Decreased fire frequency; Loss of eco-engineers; Drought",
+    "Clearing + grazing (native & exotic)",
+    "Rolling and clearing",
+    "Rolling and clearing; Cropping/sewing pasture",
+    "Rolling and clearing; Over-grazing; Drought",
+    "Over-grazing; Increased fire frequency; Increased fire severity; Decreased fire frequency; Loss of eco-engineers; Drought",
+    "Weed encroachement; Over-grazing; Tree death by loopers; Tree removal (pastoralism); Drought",
+    "Over-grazing; Weed encroachement; Increased fire frequency; Increased fire severity; Decreased fire frequency; Loss of eco-engineers; Drought",
+    "Over-grazing; Nutrient deposition; Drought",
+    "Tree removal (pastoralism); Over-grazing; Tree death by loopers; Drought",
+    "Tree death by loopers; Tree removal (pastoralism); Decreased fire frequency; Drought",
+    "Tree removal (pastoralism); Drought",
+    "Over-grazing; Increased fire frequency; Increased fire severity; Decreased fire frequency; Loss of eco-engineers; Drought",
+    "Over-grazing; Nutrient deposition",
+    "Tree removal (pastoralism); Over-grazing; Drought",
+    "Tree removal (pastoralism); Over-grazing; Drought",
+    "Weed encroachement (herbaceous weeds); hydrological alteration",
+    "Over-grazing; Nutrient deposition; Erosion; Salinity",
+    "Invasion of woody weeds; Salinity; Drought",
+    "Tree removal (pastoralism); Invasion of woody weeds; Drought",
+    "Nutrient deposition; Erosion; Fertilisation; Salinity",
+    "Tree death by loopers",
+    "Woody weed removal (overstorey); Revegetation; Propagules and rainfall",
+    "Revegetation; Propagules and rainfall",
+    "Weed control; Herbivore control; Revegetation; Reinstatement of low frequency fire; Propagules and rainfall",
+    "Woody weed removal (overstorey); Revegetation; Herbivore control",
+    "Weed control; Herbivore control; Revegetation; Reinstatement of low frequency fire",
+    "Revegetation; Herbivore control; Reinstatement of low fire frequency",
+    "Propagules and rainfall; Herbivore control; Revegetation",
+    "Weed control; Herbivore control; Revegetation; Reinstatement of low frequency fire",
+    "Revegetation; Propagules and rainfall",
+    "Weed control; Herbivore control",
+    "Revegetation; Herbivore control; Reinstatement of low fire frequency",
+    "Weed control; Herbivore control; Revegetation; Reinstatement of low frequency fire",
+    "Weed control; Herbivore control; Revegetation; Reinstatement of low frequency fire",
+    "Revegetation; Herbivore control; Reinstatement of low fire frequency",
+    "Weed control; Herbivore control; Revegetation",
+    "Revegetation; reintroduction of eco-engineers",
+    "Weed control; Herbivore control; Revegetation; Reinstatement of low frequency fire; Reintroduction of ecoengineers"
+  )
+)
+
+get_transition_edge_id <- function(from, to, scenario) {
+  paste0("from_", from, "_to_", to, "_", scenario)
+}
+transition_driver_map <- transitions_drivers %>%
+  mutate(edge_id = paste0("from_", from, "_to_", to, "_", scenario)) %>%
+  select(edge_id, drivers)
+
 # ---- UI ----
 ui <- fluidPage(
   titlePanel("STM Transition Probability"),
@@ -377,18 +384,29 @@ ui <- fluidPage(
       actionButton("set_degradation", "Degradation"),
       actionButton("set_regeneration", "Regeneration"),
       br(), br(),
-      h4("Year selection"),
-      actionButton("set_2025", "Edit 2025"),
-      actionButton("set_2100", "Edit 2100"),
-      br(),
       uiOutput("scenario_display"),
       br(),
       uiOutput("selected_transition"),
       conditionalPanel(
         condition = "output.transitionSelected",
-        sliderInput("prob_input", "Probability", min = 0, max = 1, value = 0, step = 0.01),
-        uiOutput("driver_select_ui"),
-        actionButton("save_prob", "Save Probability")
+        uiOutput("driver_prob_sliders"),
+        actionButton("save_driver_probs", "Save Probabilities for Drivers"),
+        br(), br(),
+        radioButtons("has_interactions", "Do drivers interact when the transition happens?", 
+                     choices = c("No", "Yes"), selected = "No"),
+        uiOutput("interaction_ui"),
+        br(),
+        # Yes/No toggle for comments
+        radioButtons("add_comment", "Would you like to add comments about this transition?",
+                     choices = c("No", "Yes"), selected = "No"),
+        # Comment box that appears only when "Yes" is selected
+        conditionalPanel(
+          condition = "input.add_comment == 'Yes'",
+          textAreaInput("transition_comment", 
+                        "Enter your comments:",
+                        rows = 3),
+          actionButton("save_comment", "Save Comment")
+        )
       ),
       br(),
       actionButton("submit", "Submit All Probabilities"),
@@ -404,43 +422,65 @@ ui <- fluidPage(
 # ---- SERVER ----
 server <- function(input, output, session) {
   rv <- reactiveValues(
-    edges_degradation_2025 = edges_degradation,
-    edges_degradation_2100 = edges_degradation,
-    edges_regeneration_2025 = edges_regeneration,
-    edges_regeneration_2100 = edges_regeneration,
+    edges_degradation = edges_degradation,
+    edges_regeneration = edges_regeneration,
     selected_edge = NULL,
-    edge_drivers_degradation_2025 = setNames(vector("list", nrow(edges_degradation)), edges_degradation$id),
-    edge_drivers_degradation_2100 = setNames(vector("list", nrow(edges_degradation)), edges_degradation$id),
-    edge_drivers_regeneration_2025 = setNames(vector("list", nrow(edges_regeneration)), edges_regeneration$id),
-    edge_drivers_regeneration_2100 = setNames(vector("list", nrow(edges_regeneration)), edges_regeneration$id),
+    edge_driver_prob_degradation = setNames(vector("list", nrow(edges_degradation)), edges_degradation$id),
+    edge_driver_prob_regeneration = setNames(vector("list", nrow(edges_regeneration)), edges_regeneration$id),
     scenario = "degradation",
-    year = "2025"
+    edge_driver_interactions_degradation = list(),
+    edge_driver_interactions_regeneration = list(), 
+    transition_comments = list()
   )
   
-  # Scenario switching
+  # Helper functions to format driver and interaction probabilities for display/export
+  driver_prob_label <- function(prob_list) {
+    if (is.null(prob_list) || length(prob_list) == 0) return("")
+    paste(names(prob_list), sprintf("%.2f", as.numeric(prob_list)), sep=": ", collapse="; ")
+  }
+  
+  interaction_prob_label <- function(interaction_list) {
+    if (is.null(interaction_list) || length(interaction_list) == 0) return("")
+    paste(names(interaction_list), sprintf("%.2f", as.numeric(unlist(interaction_list))), sep=": ", collapse="; ")
+  }
+  
+  has_all_probs <- function(edge_id, scenario) {
+    rv_name <- paste0("edge_driver_prob_", scenario)
+    probs <- rv[[rv_name]][[edge_id]]
+    if (is.null(probs)) return(FALSE)
+    if (length(probs) == 0) return(FALSE)
+    from <- if (scenario == "degradation") {
+      edges_degradation %>% filter(id == edge_id) %>% pull(from)
+    } else {
+      edges_regeneration %>% filter(id == edge_id) %>% pull(from)
+    }
+    to <- if (scenario == "degradation") {
+      edges_degradation %>% filter(id == edge_id) %>% pull(to)
+    } else {
+      edges_regeneration %>% filter(id == edge_id) %>% pull(to)
+    }
+    edge_key <- paste0("from_", from, "_to_", to, "_", scenario)
+    expected_drivers <- transition_driver_map %>%
+      filter(edge_id == edge_key) %>%
+      pull(drivers) %>%
+      str_split(";") %>%
+      unlist() %>%
+      str_trim()
+    all(expected_drivers %in% names(probs))
+  }
+  
   observeEvent(input$set_degradation, {
     rv$scenario <- "degradation"
     rv$selected_edge <- NULL
-    updateSliderInput(session, "prob_input", value = 0)
   })
+  
   observeEvent(input$set_regeneration, {
     rv$scenario <- "regeneration"
     rv$selected_edge <- NULL
-    updateSliderInput(session, "prob_input", value = 0)
-  })
-  observeEvent(input$set_2025, {
-    rv$year <- "2025"
-    rv$selected_edge <- NULL
-    updateSliderInput(session, "prob_input", value = 0)
-  })
-  observeEvent(input$set_2100, {
-    rv$year <- "2100"
-    rv$selected_edge <- NULL
-    updateSliderInput(session, "prob_input", value = 0)
   })
   
   output$scenario_display <- renderUI({
-    strong(paste("Currently editing:", toupper(rv$scenario), " - Year", rv$year))
+    strong(paste("Currently editing:", toupper(rv$scenario)))
   })
   
   output$transitionSelected <- reactive({
@@ -451,114 +491,220 @@ server <- function(input, output, session) {
   output$selected_transition <- renderUI({
     req(input$edge_id)
     edge <- switch(
-      paste(rv$scenario, rv$year),
-      "degradation 2025" = rv$edges_degradation_2025,
-      "degradation 2100" = rv$edges_degradation_2100,
-      "regeneration 2025" = rv$edges_regeneration_2025,
-      "regeneration 2100" = rv$edges_regeneration_2100
+      rv$scenario,
+      "degradation" = rv$edges_degradation,
+      "regeneration" = rv$edges_regeneration
     ) %>% filter(id == input$edge_id)
     rv$selected_edge <- input$edge_id
     from <- edge$from
     to <- edge$to
-    HTML(paste0("<strong>Selected Transition (", toupper(rv$scenario), " - ", rv$year, "):</strong><br>", from, " → ", to))
+    HTML(paste0("<strong>Selected Transition (", toupper(rv$scenario), "):</strong><br>", from, " → ", to))
   })
   
-  output$driver_select_ui <- renderUI({
+  output$driver_prob_sliders <- renderUI({
     req(rv$selected_edge)
-    driver_choices <- split(drivers_df$Driver.pre.condition, drivers_df$Broad.theme)
+    edge_df <- if (rv$scenario == "degradation") edges_degradation else edges_regeneration
+    edge <- edge_df %>% filter(id == rv$selected_edge)
+    from <- edge$from; to <- edge$to; scenario <- rv$scenario
+    edge_id_lookup <- get_transition_edge_id(from, to, scenario)
+    drivers_str <- transition_driver_map %>% filter(edge_id == edge_id_lookup) %>% pull(drivers)
+    driver_choices <- if(length(drivers_str) > 0 && drivers_str != "") {
+      str_split(drivers_str, ";")[[1]] %>% str_trim()
+    } else { character(0) }
+    prob_list <- switch(
+      rv$scenario,
+      "degradation" = rv$edge_driver_prob_degradation[[rv$selected_edge]],
+      "regeneration" = rv$edge_driver_prob_regeneration[[rv$selected_edge]]
+    )
+    if (is.null(prob_list)) prob_list <- setNames(rep(0, length(driver_choices)), driver_choices)
+    sliderUIs <- lapply(driver_choices, function(driver) {
+      sliderInput(
+        inputId = paste0("prob_driver_", make.names(driver)),
+        label = driver,
+        min = 0, max = 1, value = prob_list[driver], step = 0.01
+      )
+    })
+    do.call(tagList, sliderUIs)
+  })
+  
+  output$interaction_ui <- renderUI({
+    req(input$has_interactions == "Yes", rv$selected_edge)
     
-    selected_drivers <- switch(
-      paste(rv$scenario, rv$year),
-      "degradation 2025" = rv$edge_drivers_degradation_2025[[rv$selected_edge]],
-      "degradation 2100" = rv$edge_drivers_degradation_2100[[rv$selected_edge]],
-      "regeneration 2025" = rv$edge_drivers_regeneration_2025[[rv$selected_edge]],
-      "regeneration 2100" = rv$edge_drivers_regeneration_2100[[rv$selected_edge]]
+    edge_df <- if (rv$scenario == "degradation") edges_degradation else edges_regeneration
+    edge <- edge_df %>% filter(id == rv$selected_edge)
+    from <- edge$from; to <- edge$to; scenario <- rv$scenario
+    edge_id_lookup <- get_transition_edge_id(from, to, scenario)
+    drivers_str <- transition_driver_map %>% filter(edge_id == edge_id_lookup) %>% pull(drivers)
+    driver_choices <- if(length(drivers_str) > 0 && drivers_str != "") {
+      str_split(drivers_str, ";")[[1]] %>% str_trim()
+    } else { character(0) }
+    
+    if (length(driver_choices) < 2) {
+      return(h6("Not enough drivers to define interactions."))
+    }
+    
+    if (is.null(rv$interaction_count)) rv$interaction_count <- 1
+    
+    interaction_uis <- lapply(seq_len(rv$interaction_count), function(i) {
+      tagList(
+        fluidRow(
+          column(6, selectInput(paste0("interaction_driver1_", i), 
+                                label = paste("Interaction", i, "- Driver 1"), 
+                                choices = driver_choices, 
+                                selected = driver_choices[1])),
+          column(6, selectInput(paste0("interaction_driver2_", i), 
+                                label = paste("Interaction", i, "- Driver 2"), 
+                                choices = driver_choices, 
+                                selected = driver_choices[2]))
+        ),
+        fluidRow(
+          column(12, 
+                 sliderInput(paste0("interaction_prob_", i), 
+                             label = "Interaction probability", 
+                             min = 0, max = 1, value = 0, step = 0.01,
+                             width = "100%"))
+        ),
+        hr()
+      )
+    })
+    
+    saved_interactions <- switch(
+      rv$scenario,
+      "degradation" = rv$edge_driver_interactions_degradation[[rv$selected_edge]],
+      "regeneration" = rv$edge_driver_interactions_regeneration[[rv$selected_edge]]
     )
-    selectizeInput(
-      "drivers_selected",
-      "Select one or more drivers/preconditions:",
-      choices = driver_choices,
-      selected = selected_drivers,
-      multiple = TRUE,
-      options = list(placeholder = 'Choose drivers...')
+    
+    saved_interactions_ui <- NULL
+    if (!is.null(saved_interactions) && length(saved_interactions) > 0) {
+      saved_interactions_ui <- tagList(
+        h5("Saved interactions for this transition:"),
+        tags$ul(
+          lapply(names(saved_interactions), function(inter) {
+            tags$li(paste0(inter, ": ", sprintf("%.2f", saved_interactions[[inter]])))
+          })
+        )
+      )
+    }
+    
+    tagList(
+      actionButton("add_interaction", "Add Another Interaction"),
+      br(), br(),
+      interaction_uis,
+      br(),
+      actionButton("save_all_interactions", "Save All Interaction Probabilities"),
+      br(), br(),
+      saved_interactions_ui
     )
   })
   
-  observeEvent(input$save_prob, {
+  observeEvent(input$save_driver_probs, {
     req(rv$selected_edge)
-    idx <- switch(
-      paste(rv$scenario, rv$year),
-      "degradation 2025" = which(rv$edges_degradation_2025$id == rv$selected_edge),
-      "degradation 2100" = which(rv$edges_degradation_2100$id == rv$selected_edge),
-      "regeneration 2025" = which(rv$edges_regeneration_2025$id == rv$selected_edge),
-      "regeneration 2100" = which(rv$edges_regeneration_2100$id == rv$selected_edge)
+    
+    edge_df <- if (rv$scenario == "degradation") edges_degradation else edges_regeneration
+    edge <- edge_df %>% filter(id == rv$selected_edge)
+    from <- edge$from; to <- edge$to; scenario <- rv$scenario
+    edge_id_lookup <- get_transition_edge_id(from, to, scenario)
+    drivers_str <- transition_driver_map %>% filter(edge_id == edge_id_lookup) %>% pull(drivers)
+    driver_choices <- if(length(drivers_str) > 0 && drivers_str != "") {
+      str_split(drivers_str, ";")[[1]] %>% str_trim()
+    } else { character(0) }
+    prob_list <- setNames(
+      sapply(driver_choices, function(driver) input[[paste0("prob_driver_", make.names(driver))]]),
+      driver_choices
     )
-    if (rv$scenario == "degradation" && rv$year == "2025") {
-      rv$edges_degradation_2025$label[idx] <- sprintf("%.2f", input$prob_input)
-      #rv$edges_degradation_2025$value[idx] <- input$prob_input * 10
-      rv$edge_drivers_degradation_2025[[rv$selected_edge]] <- input$drivers_selected
-    } else if (rv$scenario == "degradation" && rv$year == "2100") {
-      rv$edges_degradation_2100$label[idx] <- sprintf("%.2f", input$prob_input)
-      #rv$edges_degradation_2100$value[idx] <- input$prob_input * 10
-      rv$edge_drivers_degradation_2100[[rv$selected_edge]] <- input$drivers_selected
-    } else if (rv$scenario == "regeneration" && rv$year == "2025") {
-      rv$edges_regeneration_2025$label[idx] <- sprintf("%.2f", input$prob_input)
-      #rv$edges_regeneration_2025$value[idx] <- input$prob_input * 10
-      rv$edge_drivers_regeneration_2025[[rv$selected_edge]] <- input$drivers_selected
-    } else if (rv$scenario == "regeneration" && rv$year == "2100") {
-      rv$edges_regeneration_2100$label[idx] <- sprintf("%.2f", input$prob_input)
-      #rv$edges_regeneration_2100$value[idx] <- input$prob_input * 10
-      rv$edge_drivers_regeneration_2100[[rv$selected_edge]] <- input$drivers_selected
+    rv_name <- paste0("edge_driver_prob_", rv$scenario)
+    rv[[rv_name]][[rv$selected_edge]] <- prob_list
+    showNotification("Driver probabilities saved.", type = "message")
+  })
+  
+  # Observer for saving comments
+  observeEvent(input$save_comment, {
+    req(rv$selected_edge)
+    rv$transition_comments[[rv$selected_edge]] <- input$transition_comment
+    rv$add_comment_flags[[rv$selected_edge]] <- TRUE
+    showNotification("Comment saved.", type = "message")
+  })
+  
+  observeEvent(rv$selected_edge, {
+    req(rv$selected_edge)
+    
+    # Reset the add_comment radio button
+    if (!is.null(rv$add_comment_flags[[rv$selected_edge]])) {
+      updateRadioButtons(session, "add_comment", selected = "Yes")
+      updateTextAreaInput(session, "transition_comment", 
+                          value = rv$transition_comments[[rv$selected_edge]])
+    } else {
+      updateRadioButtons(session, "add_comment", selected = "No")
+      updateTextAreaInput(session, "transition_comment", value = "")
     }
-    showNotification("Probability and drivers saved.", type = "message")
+  })
+  
+  observeEvent(input$add_interaction, {
+    if (is.null(rv$interaction_count)) {
+      rv$interaction_count <- 1
+    }
+    rv$interaction_count <- rv$interaction_count + 1
+  })
+  
+  observeEvent(input$save_all_interactions, {
+    req(rv$selected_edge)
+    edge_id <- rv$selected_edge
+    scenario <- rv$scenario
+    interaction_list_name <- paste0("edge_driver_interactions_", scenario)
+    if (is.null(rv[[interaction_list_name]][[edge_id]])) {
+      rv[[interaction_list_name]][[edge_id]] <- list()
+    }
+    
+    new_interactions <- list()
+    
+    for (i in seq_len(rv$interaction_count)) {
+      d1 <- input[[paste0("interaction_driver1_", i)]]
+      d2 <- input[[paste0("interaction_driver2_", i)]]
+      prob <- input[[paste0("interaction_prob_", i)]]
+      
+      if (is.null(d1) || is.null(d2) || is.null(prob)) next
+      
+      if (d1 == d2) next
+      
+      inter_name <- paste(sort(c(d1, d2)), collapse = " + ")
+      new_interactions[[inter_name]] <- prob
+    }
+    
+    rv[[interaction_list_name]][[edge_id]] <- new_interactions
+    
+    showNotification("All interaction probabilities saved.", type = "message")
   })
   
   output$network <- renderVisNetwork({
-    active_edges <- switch(
-      paste(rv$scenario, rv$year),
-      "degradation 2025" = rv$edges_degradation_2025,
-      "degradation 2100" = rv$edges_degradation_2100,
-      "regeneration 2025" = rv$edges_regeneration_2025,
-      "regeneration 2100" = rv$edges_regeneration_2100
-    )
-    # Arrow color logic
-    active_edges <- active_edges %>%
+    scenario <- rv$scenario
+    edge_list_name <- paste0("edges_", scenario)
+    active_edges <- rv[[edge_list_name]] %>%
+      rowwise() %>%
       mutate(
-        color = ifelse(label != "" & label != "0.00",
-                       ifelse(rv$scenario == "degradation", "#e41a1c", "#2ca02c"),
-                       "#000000"),
-        width = 6  # fixed width for all arrows
-      )
+        color = if (has_all_probs(id, scenario)) {
+          if (scenario == "degradation") "#e41a1c" else "#56B4E9"
+        } else {
+          "#000000"
+        },
+        width = if (has_all_probs(id, scenario)) 4 else 2
+      ) %>%
+      ungroup()
     
-    center_x <- mean(nodes$x)
-    center_y <- mean(nodes$y)
     visNetwork(nodes, active_edges) %>%
       visNodes(
         shape = "box",
-        font = list(size = 75, face = "bold", 
-                    color = "black", multi = TRUE, 
-                    vadjust=0, align="center", family="arial"),
-        borderWidth = .5,
+        font = list(size = 75, face = "bold", color = "black", multi = TRUE, vadjust = 0, align = "center", family = "arial"),
+        borderWidth = 0.5,
         widthConstraint = list(minimum = 520, maximum = 520),
         heightConstraint = list(minimum = 140, maximum = 140)
       ) %>%
       visEdges(
         arrows = "to",
         smooth = FALSE,
-        font = list(
-          align = "middle", 
-          vadjust = -30, 
-          color = "black", 
-          size = 28, 
-          family = "arial"
-        )
+        font = list(align = "middle", vadjust = -30, color = "black", size = 28, family = "arial")
       ) %>%
       visOptions(
-        highlightNearest = list(
-          enabled = TRUE,
-          degree = 1,
-          hover = FALSE
-        ), 
+        highlightNearest = list(enabled = TRUE, degree = 1, hover = FALSE),
         selectedBy = "label",
         nodesIdSelection = TRUE
       ) %>%
@@ -566,134 +712,132 @@ server <- function(input, output, session) {
       visLayout(randomSeed = 4321) %>%
       visEvents(
         selectEdge = "function(properties) {
-          var selectedEdgeId = properties.edges[0];
-          this.body.data.edges.forEach(function(edge) {
-            if(edge.id === selectedEdgeId) {
-              edge.color = {color: 'red'};
-              edge.width = 4;
-            } else {
-              edge.color = {color: 'rgba(0,0,0,0.1)'};
-              edge.width = 1;
-            }
-            this.body.data.edges.update(edge);
-          }.bind(this));
+        var selectedEdgeId = properties.edges[0];
+        this.body.data.edges.forEach(function(edge) {
+          if(edge.id === selectedEdgeId) {
+            edge.color = {color: 'red'};
+            edge.width = 4;
+          } else {
+            edge.color = {color: 'rgba(0,0,0,0.1)'};
+            edge.width = 1;
+          }
+          this.body.data.edges.update(edge);
+        }.bind(this));
 
-          var selectedEdge = this.body.data.edges.get(selectedEdgeId);
-          var from = selectedEdge.from;
-          var to = selectedEdge.to;
-          this.body.data.nodes.forEach(function(node) {
-            if(node.id === from || node.id === to) {
-              node.opacity = 1;
-            } else {
-              node.opacity = 0.2;
-            }
-            this.body.data.nodes.update(node);
-          }.bind(this));
-        }",
-        deselectEdge = "function(properties) {
-          this.body.data.edges.forEach(function(edge) {
-            edge.color = {color: 'black'};
-            edge.width = 2;
-            this.body.data.edges.update(edge);
-          }.bind(this));
-
-          this.body.data.nodes.forEach(function(node) {
+        var selectedEdge = this.body.data.edges.get(selectedEdgeId);
+        var from = selectedEdge.from;
+        var to = selectedEdge.to;
+        this.body.data.nodes.forEach(function(node) {
+          if(node.id === from || node.id === to) {
             node.opacity = 1;
-            this.body.data.nodes.update(node);
-          }.bind(this));
-        }"
+          } else {
+            node.opacity = 0.2;
+          }
+          this.body.data.nodes.update(node);
+        }.bind(this));
+
+        Shiny.setInputValue('edge_id', selectedEdgeId);
+      }",
+        deselectEdge = "function(properties) {
+        this.body.data.edges.forEach(function(edge) {
+          edge.color = {color: 'black'};
+          edge.width = 2;
+          this.body.data.edges.update(edge);
+        }.bind(this));
+
+        this.body.data.nodes.forEach(function(node) {
+          node.opacity = 1;
+          this.body.data.nodes.update(node);
+        }.bind(this));
+
+        Shiny.setInputValue('edge_id', null);
+      }"
       )
   })
   
-  # Helper: get "Broad theme - Driver" string for each driver
-  driver_theme_label <- function(driver_vec) {
-    if (length(driver_vec) == 0 || all(is.na(driver_vec))) return("")
-    sapply(driver_vec, function(drv) {
-      idx <- which(drivers_df$Driver.pre.condition == drv)
-      if (length(idx) > 0) {
-        paste0(drivers_df$Broad.theme[idx[1]], " - ", drv)
+  observe({
+    input$network_selectedEdges
+    isolate({
+      new_selected <- input$network_selectedEdges
+      
+      if (length(new_selected) > 0) {
+        if (!is.null(rv$selected_edge) && rv$selected_edge != new_selected) {
+          visNetworkProxy("network") %>%
+            visUpdateEdges(edges = data.frame(id = rv$selected_edge, color = "black", width = 2))
+        }
+        
+        rv$selected_edge <- new_selected
+        
+        visNetworkProxy("network") %>%
+          visUpdateEdges(edges = data.frame(id = new_selected, color = "red", width = 4))
+        
       } else {
-        drv
+        if (!is.null(rv$selected_edge)) {
+          visNetworkProxy("network") %>%
+            visUpdateEdges(edges = data.frame(id = rv$selected_edge, color = "black", width = 2))
+          rv$selected_edge <- NULL
+        }
       }
-    }) %>% paste(collapse = "; ")
-  }
+    })
+  })
+  
+  observeEvent(input$edge_id, {
+    rv$interaction_count <- 1
+    if (is.null(input$edge_id)) {
+      rv$selected_edge <- NULL
+      
+      visNetworkProxy("network") %>%
+        visUpdateEdges(edges = {
+          edges <- switch(
+            rv$scenario,
+            "degradation" = rv$edges_degradation,
+            "regeneration" = rv$edges_regeneration
+          )
+          edges %>%
+            mutate(color = "#000000", width = 10) %>%
+            select(id, color, width)
+        }) %>%
+        visUpdateNodes(nodes = {
+          nodes %>%
+            mutate(
+              color.background = color.background,
+              color.border = "black",
+              font.color = "black"
+            ) %>%
+            select(id, color.background, color.border, font.color)
+        })
+    }
+  })
   
   observeEvent(input$submit, {
     if (input$expert_id == "" || input$expert_name == "") {
       showNotification("Please enter your Expert Name and Email.", type = "error")
       return()
     }
-    # Collect for all scenarios/years
-    df_deg_2025 <- rv$edges_degradation_2025 %>%
-      select(from, to, label, id) %>%
-      rename(probability = label, edge_id = id) %>%
+    df_deg <- rv$edges_degradation %>%
+      select(from, to, id) %>%
+      rename(edge_id = id) %>%
       mutate(
-        probability = as.numeric(probability),
         expert_name = input$expert_name,
         expert_email = input$expert_id,
         scenario = "degradation",
-        year = "2025",
-        drivers = sapply(edge_id, function(eid) driver_theme_label(rv$edge_drivers_degradation_2025[[eid]]))
+        driver_probabilities = sapply(edge_id, function(eid) driver_prob_label(rv$edge_driver_prob_degradation[[eid]])),
+        interaction_probabilities = sapply(edge_id, function(eid) interaction_prob_label(rv$edge_driver_interactions_degradation[[eid]]))
       )
-    df_deg_2100 <- rv$edges_degradation_2100 %>%
-      select(from, to, label, id) %>%
-      rename(probability = label, edge_id = id) %>%
+    df_reg <- rv$edges_regeneration %>%
+      select(from, to, id) %>%
+      rename(edge_id = id) %>%
       mutate(
-        probability = as.numeric(probability),
-        expert_name = input$expert_name,
-        expert_email = input$expert_id,
-        scenario = "degradation",
-        year = "2100",
-        drivers = sapply(edge_id, function(eid) driver_theme_label(rv$edge_drivers_degradation_2100[[eid]]))
-      )
-    df_reg_2025 <- rv$edges_regeneration_2025 %>%
-      select(from, to, label, id) %>%
-      rename(probability = label, edge_id = id) %>%
-      mutate(
-        probability = as.numeric(probability),
         expert_name = input$expert_name,
         expert_email = input$expert_id,
         scenario = "regeneration",
-        year = "2025",
-        drivers = sapply(edge_id, function(eid) driver_theme_label(rv$edge_drivers_regeneration_2025[[eid]]))
+        driver_probabilities = sapply(edge_id, function(eid) driver_prob_label(rv$edge_driver_prob_regeneration[[eid]])),
+        interaction_probabilities = sapply(edge_id, function(eid) interaction_prob_label(rv$edge_driver_interactions_regeneration[[eid]]))
       )
-    df_reg_2100 <- rv$edges_regeneration_2100 %>%
-      select(from, to, label, id) %>%
-      rename(probability = label, edge_id = id) %>%
-      mutate(
-        probability = as.numeric(probability),
-        expert_name = input$expert_name,
-        expert_email = input$expert_id,
-        scenario = "regeneration",
-        year = "2100",
-        drivers = sapply(edge_id, function(eid) driver_theme_label(rv$edge_drivers_regeneration_2100[[eid]]))
-      )
-    df <- bind_rows(df_deg_2025, df_deg_2100, df_reg_2025, df_reg_2100)
+    df <- bind_rows(df_deg, df_reg)
     filename <- paste0("responses_", input$expert_name, "_", input$expert_id, ".csv")
     write.csv(df, filename, row.names = FALSE)
     showNotification("All responses saved.", type = "message")
-  })
-  
-  observeEvent(input$edge_id, {
-    req(input$edge_id)
-    rv$selected_edge <- input$edge_id
-    
-    active_edges <- switch(
-      paste(rv$scenario, rv$year),
-      "degradation 2025" = rv$edges_degradation_2025,
-      "degradation 2100" = rv$edges_degradation_2100,
-      "regeneration 2025" = rv$edges_regeneration_2025,
-      "regeneration 2100" = rv$edges_regeneration_2100
-    )
-    
-    idx <- which(active_edges$id == input$edge_id)
-    if (length(idx) == 1) {
-      prob <- active_edges$label[idx]
-      prob_val <- ifelse(prob != "" && !is.na(as.numeric(prob)), as.numeric(prob), 0)
-      updateSliderInput(session, "prob_input", value = prob_val)
-    } else {
-      updateSliderInput(session, "prob_input", value = 0)
-    }
   })
   
   output$downloadData <- downloadHandler(
@@ -701,54 +845,47 @@ server <- function(input, output, session) {
       paste0("STM_probabilities_", input$expert_name, "_", input$expert_id, ".csv")
     },
     content = function(file) {
-      df_deg_2025 <- rv$edges_degradation_2025 %>%
-        select(from, to, label, id) %>%
-        rename(probability = label, edge_id = id) %>%
+      # Create degradation data without has_comment column
+      df_deg <- rv$edges_degradation %>%
+        select(from, to, id) %>%
+        rename(edge_id = id) %>%
         mutate(
-          probability = as.numeric(probability),
           expert_name = input$expert_name,
           expert_email = input$expert_id,
           scenario = "degradation",
-          year = "2025",
-          drivers = sapply(edge_id, function(eid) driver_theme_label(rv$edge_drivers_degradation_2025[[eid]]))
+          driver_probabilities = sapply(edge_id, function(eid) driver_prob_label(rv$edge_driver_prob_degradation[[eid]])),
+          interaction_probabilities = sapply(edge_id, function(eid) interaction_prob_label(rv$edge_driver_interactions_degradation[[eid]])),
+          transition_comments = sapply(edge_id, function(eid) {
+            ifelse(is.null(rv$transition_comments[[eid]]), NA, rv$transition_comments[[eid]])
+          })
         )
-      df_deg_2100 <- rv$edges_degradation_2100 %>%
-        select(from, to, label, id) %>%
-        rename(probability = label, edge_id = id) %>%
+      
+      # Create regeneration data without has_comment column
+      df_reg <- rv$edges_regeneration %>%
+        select(from, to, id) %>%
+        rename(edge_id = id) %>%
         mutate(
-          probability = as.numeric(probability),
-          expert_name = input$expert_name,
-          expert_email = input$expert_id,
-          scenario = "degradation",
-          year = "2100",
-          drivers = sapply(edge_id, function(eid) driver_theme_label(rv$edge_drivers_degradation_2100[[eid]]))
-        )
-      df_reg_2025 <- rv$edges_regeneration_2025 %>%
-        select(from, to, label, id) %>%
-        rename(probability = label, edge_id = id) %>%
-        mutate(
-          probability = as.numeric(probability),
           expert_name = input$expert_name,
           expert_email = input$expert_id,
           scenario = "regeneration",
-          year = "2025",
-          drivers = sapply(edge_id, function(eid) driver_theme_label(rv$edge_drivers_regeneration_2025[[eid]]))
+          driver_probabilities = sapply(edge_id, function(eid) driver_prob_label(rv$edge_driver_prob_regeneration[[eid]])),
+          interaction_probabilities = sapply(edge_id, function(eid) interaction_prob_label(rv$edge_driver_interactions_regeneration[[eid]])),
+          transition_comments = sapply(edge_id, function(eid) {
+            ifelse(is.null(rv$transition_comments[[eid]]), NA, rv$transition_comments[[eid]])
+          })
         )
-      df_reg_2100 <- rv$edges_regeneration_2100 %>%
-        select(from, to, label, id) %>%
-        rename(probability = label, edge_id = id) %>%
-        mutate(
-          probability = as.numeric(probability),
-          expert_name = input$expert_name,
-          expert_email = input$expert_id,
-          scenario = "regeneration",
-          year = "2100",
-          drivers = sapply(edge_id, function(eid) driver_theme_label(rv$edge_drivers_regeneration_2100[[eid]]))
-        )
-      df <- bind_rows(df_deg_2025, df_deg_2100, df_reg_2025, df_reg_2100)
+      
+      # Combine and ensure comments column is last
+      df <- bind_rows(df_deg, df_reg) %>%
+        select(-any_of("has_comment")) %>%  # Explicitly remove if it exists
+        relocate(transition_comments, .after = last_col())
+      
       write.csv(df, file, row.names = FALSE)
     }
   )
 }
 
+# ---- RUN APP ----
 shinyApp(ui = ui, server = server)
+
+
